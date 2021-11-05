@@ -12,7 +12,9 @@ public class TestCreate : MonoBehaviour
     public GameObject quad;
     public Transform parentContainer;
 
-    [FormerlySerializedAs("slider")] public Slider currentTimeSlider;
+    public Slider currentTimeSlider;
+    public Slider angleStepsSlider;
+
     private List<double[,]> res;
     Simulation sim = new Simulation();
     private Texture2D texture;
@@ -26,11 +28,13 @@ public class TestCreate : MonoBehaviour
 
     void Start()
     {
-        currentTimeSlider.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
+       
+        angleStepsSlider.minValue = 3;
+        angleStepsSlider.maxValue = 200;
 
         sim.R = 0.2;
-        sim.endT = 0.1;
-        sim.Nt = 5000;
+        sim.endT = 0.01;
+        sim.Nt = 1000;
         sim.Nr = 10;
         sim.NAlpha = 15;
 
@@ -50,15 +54,40 @@ public class TestCreate : MonoBehaviour
 
         currentTimeSlider.maxValue = sim.Nt;
 
+        currentTimeSlider.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
+        angleStepsSlider.onValueChanged.AddListener(delegate { AngleStepsChanged(); });
+
+    }
+
+    private void AngleStepsChanged()
+    {
+        sim.NAlpha = (int) angleStepsSlider.value;
+        res = sim.solve();
+
+        updateMinMax();
+        createTexture();
+
+        CircleMeshGenerator.generateCircleOnGO(obj, 10, sim.Nr - 1, sim.NAlpha);
+        updateTexture(res[0], GradientManager.Gradient);
+
     }
 
     private void createTexture()
     {
-        texture = new Texture2D(sim.Nr, sim.NAlpha);
+        if (texture != null)
+        {
+            texture.Resize(sim.Nr, sim.NAlpha);
+        }
+        else
+        {
+            texture = new Texture2D(sim.Nr, sim.NAlpha);
+        }
     }
 
     private void updateMinMax()
     {
+        min = double.MaxValue;
+        max = double.MinValue;
         for (int i = 0; i < res.Count; i++)
         {
             var cur = res[i];
@@ -66,8 +95,11 @@ public class TestCreate : MonoBehaviour
             {
                 for (int y = 0; y < sim.NAlpha; y++)
                 {
-                    min = Math.Min(cur[x, y], min);
-                    max = Math.Max(cur[x, y], max);
+                    if(!double.IsNaN(cur[x, y]))
+                    {
+                        min = Math.Min(cur[x, y], min);
+                        max = Math.Max(cur[x, y], max);
+                    }
                 }
             }
         }
@@ -80,6 +112,7 @@ public class TestCreate : MonoBehaviour
         texture.filterMode = mode;
         texture.wrapModeU = TextureWrapMode.Mirror;
         texture.wrapModeV = TextureWrapMode.Repeat;
+
         texture.Apply();
 
         Renderer renderer = quad.GetComponent<Renderer>();
@@ -95,9 +128,9 @@ public class TestCreate : MonoBehaviour
         {
             for (int y = 0; y < texture.height; y++)
             {
-                Color color =
-                    gradient.Evaluate((float) ((current[x, y] - min) /
-                                               (max - min))); // ((x + y)%2 != 0 ? Color.white : Color.red);
+                float t = (float) ((current[x, y] - min) / (max - min));
+                
+                Color color = float.IsNaN(t)? Color.black : gradient.Evaluate(t); // ((x + y)%2 != 0 ? Color.white : Color.red);
                 texture.SetPixel(x, y, color);
             }
         }

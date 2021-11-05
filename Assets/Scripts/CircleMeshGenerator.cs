@@ -103,6 +103,8 @@ public class CircleMeshGenerator
     private static void setMaterial(GameObject go, MeshFilter meshFilter, List<Vector3> vertices, List<int> triangles,
         bool wireframe = false)
     {
+        meshFilter.mesh.Clear(true);
+        //meshFilter.mesh.
         meshFilter.mesh.SetVertices(vertices);
         meshFilter.mesh.SetIndices(triangles, wireframe ? MeshTopology.Lines : MeshTopology.Quads, 0);
         //meshFilter.mesh.SetUVs();
