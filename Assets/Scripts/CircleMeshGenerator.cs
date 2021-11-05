@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,11 +9,19 @@ class PointsCircle
     public int pointCount;
     public int[] pointIds;
 }
+
 public class CircleMeshGenerator
 {
     public static GameObject createCircleMesh(float radius, int radiusSegments = 5, int angleSegments = 10)
     {
         var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        generateCircleOnGO(go, radius, radiusSegments, angleSegments);
+
+        return go;
+    }
+
+    public static unsafe void generateCircleOnGO(GameObject go, float radius, int radiusSegments = 5, int angleSegments = 10)
+    {
         bool wireframe = false;
 
         var meshFilter = go.GetComponent<MeshFilter>();
@@ -23,44 +31,40 @@ public class CircleMeshGenerator
         List<Vector2> uvs = new List<Vector2>();
         int id = 0;
 
-        unsafe
+        Vector3* sides = stackalloc Vector3[4];
+
+        float radialStep = radius / radiusSegments;
+
+        float dAngle = 360.0f / angleSegments;
+        for (int i = radiusSegments - 1; i >= 0; --i)
         {
-            Vector3* sides = stackalloc Vector3[4];
+            float startR = radialStep * (i);
+            float endR = radialStep * (i + 1);
 
-            float radialStep = radius / radiusSegments;
-
-            float dAngle = 360.0f / angleSegments;
-            for (int i = radiusSegments - 1; i >= 0; --i)
+            for (int j = 0; j < angleSegments; ++j)
             {
-                float startR = radialStep * (i);
-                float endR = radialStep * (i + 1);
+                Quaternion q1 = Quaternion.AngleAxis(dAngle * j, Vector3.up);
+                Quaternion q2 = Quaternion.AngleAxis(dAngle * (j + 1), Vector3.up);
 
-                for (int j = 0; j < angleSegments; ++j)
-                {
-                    Quaternion q1 = Quaternion.AngleAxis(dAngle * j, Vector3.up);
-                    Quaternion q2 = Quaternion.AngleAxis(dAngle * (j + 1), Vector3.up);
+                Vector3 start = Vector3.forward * startR;
+                Vector3 end = Vector3.forward * endR;
 
-                    Vector3 start = Vector3.forward * startR;
-                    Vector3 end = Vector3.forward * endR;
+                sides[0] = q1 * start;
+                sides[1] = q1 * end;
+                sides[2] = q2 * end;
+                sides[3] = q2 * start;
 
-                    sides[0] = q1 * start;
-                    sides[1] = q1 * end;
-                    sides[2] = q2 * end;
-                    sides[3] = q2 * start;
+                uvs.Add(new Vector2((float) i / radiusSegments, (float) (j + 0) / angleSegments));
+                uvs.Add(new Vector2((float) (i + 1) / radiusSegments, (float) (j + 0) / angleSegments));
+                uvs.Add(new Vector2((float) (i + 1) / radiusSegments, (float) (j + 1) / angleSegments));
+                uvs.Add(new Vector2((float) i / radiusSegments, (float) (j + 1) / angleSegments));
 
-                    uvs.Add(new Vector2((float)i/radiusSegments, (float)(j + 0)/angleSegments));
-                    uvs.Add(new Vector2((float) (i + 1)/radiusSegments, (float)(j + 0)/angleSegments));
-                    uvs.Add(new Vector2((float)(i + 1) /radiusSegments, (float)(j + 1)/angleSegments));
-                    uvs.Add(new Vector2((float)i/radiusSegments, (float)(j + 1)/angleSegments));
-
-                    addQuad(sides, vertices, triangles, ref id, wireframe);
-                }
+                addQuad(sides, vertices, triangles, ref id, wireframe);
             }
         }
+
         setMaterial(go, meshFilter, vertices, triangles, wireframe);
         meshFilter.mesh.SetUVs(0, uvs);
-
-        return go;
     }
 
     private static void addTriangles(List<int> triangles, ref int id, bool lines, bool revers = false)
