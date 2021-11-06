@@ -24,19 +24,18 @@ public class Simulation
         {
             for (int j = 0; j < NAlpha; j++)
             {
-                heatMap[i, j] = 0; //hz what has to be here let it be 0, idk
+                heatMap[i, j] = (Math.Sin(Math.PI * 2.0 * j / (NAlpha)) + 1.0) * Math.Pow((double) i/(Nr - 1.0), 6.0);
             }
         }
 
-        for (int j = 0; j < NAlpha; j++)
-        {
-            heatMap[Nr - 1, j] = Math.Sin(Math.PI * 2.0 * j / (NAlpha));
-        }
+        //for (int j = 0; j < NAlpha; j++)
+        //{
+        //    heatMap[Nr - 1, j] = Math.Sin(Math.PI * 2.0 * j / (NAlpha));
+        //}
     }
 
     double getValue(double[,] heatMap, int r, int angle)
     {
-        r = Math.Abs(r);
         if (angle < 0)
         {
             angle = NAlpha - angle;
@@ -52,9 +51,20 @@ public class Simulation
     double nextPoint(int r, int angle, double[,] heatMap)
     {
         var m = heatMap;
-        double result = heatMap[r, angle];
         double r_i = dr * r;
         double derivative = 0;
+
+        double result = heatMap[r, angle];
+        if (r > 0)
+        {
+            derivative = (getValue(m, r - 1, angle) - 2 * getValue(m, r, angle) + getValue(m, r + 1, angle))/(dr * dr) +
+                         (1.0 / r_i) * (getValue(m, r + 1, angle) - getValue(m, r - 1, angle)) / (2.0 * dr) + 
+                         (1.0/(r_i * r_i) * (getValue(m, r, angle - 1) - 2.0 * getValue(m, r, angle) + getValue(m, r, angle + 1)) / (dalpha * dalpha));
+        }
+
+        result += alpha * dt * derivative;
+
+        return result;
         if (r > 0)
         {
             derivative =
@@ -64,8 +74,8 @@ public class Simulation
         }
 
         result += d * (
-            (
-                getValue(m, r - 1, angle) - 2.0 * getValue(m, r, angle) + getValue(m, r + 1, angle)) + derivative);
+            (getValue(m, r - 1, angle) - 2.0 * getValue(m, r, angle) + getValue(m, r + 1, angle))
+            + derivative);
 
         return result;
     }
@@ -92,7 +102,7 @@ public class Simulation
             var current = new double[Nr, NAlpha];
 
             //boundary is fixed so Nr - 1
-            for (int r = 0; r < Nr - 1; r++)
+            for (int r = 1; r < Nr - 1; r++)
             {
                 for (int angle = 0; angle < NAlpha; angle++)
                 {
@@ -102,6 +112,8 @@ public class Simulation
 
             for (int angle = 0; angle < NAlpha; angle++)
             {
+                current[0, angle] = heatMap[i][0, 0];
+
                 current[Nr - 1, angle] = heatMap[i][Nr - 1, angle];
             }
 

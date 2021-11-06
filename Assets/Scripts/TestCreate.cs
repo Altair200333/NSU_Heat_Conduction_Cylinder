@@ -30,13 +30,13 @@ public class TestCreate : MonoBehaviour
     {
        
         angleStepsSlider.minValue = 3;
-        angleStepsSlider.maxValue = 200;
+        angleStepsSlider.maxValue = 100;
 
-        sim.R = 0.2;
-        sim.endT = 0.01;
+        sim.R = 0.04;
+        sim.endT = 0.001;
         sim.Nt = 1000;
-        sim.Nr = 10;
-        sim.NAlpha = 15;
+        sim.Nr = 25;
+        sim.NAlpha = 25;
 
         res  = sim.solve();
 
@@ -52,6 +52,8 @@ public class TestCreate : MonoBehaviour
 
         updateTexture(res[0], GradientManager.Gradient);
 
+
+        angleStepsSlider.value = sim.NAlpha;
         currentTimeSlider.maxValue = sim.Nt;
 
         currentTimeSlider.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
@@ -88,7 +90,8 @@ public class TestCreate : MonoBehaviour
     {
         min = double.MaxValue;
         max = double.MinValue;
-        for (int i = 0; i < res.Count; i++)
+        //for (int i = 0; i < res.Count; i++)
+        int i = 0;//(int) currentTimeSlider.value;
         {
             var cur = res[i];
             for (int x = 0; x < sim.Nr; x++)
@@ -130,7 +133,7 @@ public class TestCreate : MonoBehaviour
             {
                 float t = (float) ((current[x, y] - min) / (max - min));
                 
-                Color color = float.IsNaN(t)? Color.black : gradient.Evaluate(t); // ((x + y)%2 != 0 ? Color.white : Color.red);
+                Color color = float.IsNaN(t)? Color.green : gradient.Evaluate(t); // ((x + y)%2 != 0 ? Color.white : Color.red);
                 texture.SetPixel(x, y, color);
             }
         }
