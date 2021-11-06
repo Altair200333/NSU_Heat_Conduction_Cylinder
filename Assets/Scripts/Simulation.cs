@@ -26,7 +26,7 @@ public class Simulation
         {
             for (int j = 0; j < NAlpha; j++)
             {
-                heatMap[i, j] = (Math.Sin(Math.PI * 4.0 * j / (NAlpha) + Math.PI * 0.5) + 1.0) * Math.Pow((double) i/(Nr - 1.0), 6.0);
+                heatMap[i, j] = (Math.Sin(Math.PI * 4.0 * j / (NAlpha) + Math.PI * 0.5) + 1.0) * Math.Pow((double) i/(Nr - 1.0), 16.0);
             }
         }
 
@@ -86,7 +86,7 @@ public class Simulation
     {
         dt = endT / (Nt - 1);
         dr = R / (Nr - 1);
-        dalpha = 2.0 * Math.PI / (NAlpha);
+        dalpha = 360.0 / (NAlpha);
 
         d = alpha * dt / (dr * dr);
 

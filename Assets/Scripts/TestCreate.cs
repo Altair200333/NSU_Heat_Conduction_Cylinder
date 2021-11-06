@@ -36,14 +36,12 @@ public class TestCreate : MonoBehaviour
         angleStepsSlider.maxValue = radialStepsSlider.maxValue = 100;
 
         sim.R = 1;
-        sim.endT = 0.001;
-        sim.Nt = 1000;
+        sim.endT = 1;
+        sim.Nt = 10000;
         sim.Nr = 10;
         sim.NAlpha = 10;
 
         res = sim.solve();
-
-        updateEverything();
 
         radialSegmentsText.text = sim.Nr.ToString();
         angularSegmentsText.text = sim.NAlpha.ToString();
@@ -55,6 +53,9 @@ public class TestCreate : MonoBehaviour
         currentTimeSlider.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
         angleStepsSlider.onValueChanged.AddListener(delegate { AngleStepsChanged(); });
         radialStepsSlider.onValueChanged.AddListener(delegate { RadialStepsChanged(); });
+
+        updateEverything();
+
     }
 
     private void updateCurrentTime()
@@ -86,7 +87,7 @@ public class TestCreate : MonoBehaviour
         createTexture();
 
         CircleMeshGenerator.generateCircleOnGO(circleTemplate, 10, sim.Nr - 1, sim.NAlpha);
-        updateTexture(res[0], GradientManager.Gradient);
+        updateTexture(res[(int) currentTimeSlider.value], GradientManager.Gradient);
 
         updateCurrentTime();
 
