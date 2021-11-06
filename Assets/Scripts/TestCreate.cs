@@ -35,11 +35,11 @@ public class TestCreate : MonoBehaviour
         angleStepsSlider.minValue = radialStepsSlider.minValue = 3;
         angleStepsSlider.maxValue = radialStepsSlider.maxValue = 100;
 
-        sim.R = 0.1;
+        sim.R = 1;
         sim.endT = 0.001;
-        sim.Nt = 100;
-        sim.Nr = 20;
-        sim.NAlpha = 20;
+        sim.Nt = 1000;
+        sim.Nr = 10;
+        sim.NAlpha = 10;
 
         res = sim.solve();
 
@@ -89,6 +89,10 @@ public class TestCreate : MonoBehaviour
         updateTexture(res[0], GradientManager.Gradient);
 
         updateCurrentTime();
+
+        double stab = (sim.alpha * sim.dt / (sim.dr * sim.dr) + sim.alpha * sim.dt / (sim.dalpha * sim.dalpha));
+        bool stable = stab < 0.5;
+        Debug.Log(stab +" " + stable);
     }
 
     private void createTexture()
@@ -162,7 +166,7 @@ public class TestCreate : MonoBehaviour
     {
         int value = (int) currentTimeSlider.value;
 
-        Debug.Log(value);
+        //Debug.Log(value);
         updateTexture(res[value], GradientManager.Gradient);
 
         updateCurrentTime();
