@@ -18,6 +18,8 @@ public class Simulation
 
     public int NAlpha;
 
+    public double CentralTemperature { get; set; } = 0;
+
     void fillBoundaryCondition(double[,] heatMap)
     {
         for (int i = 0; i < Nr; i++)
@@ -28,10 +30,10 @@ public class Simulation
             }
         }
 
-        //for (int j = 0; j < NAlpha; j++)
-        //{
-        //    heatMap[Nr - 1, j] = Math.Sin(Math.PI * 2.0 * j / (NAlpha));
-        //}
+        for (int j = 0; j < NAlpha; j++)
+        {
+            heatMap[0, j] = CentralTemperature;//Math.Sin(Math.PI * 2.0 * j / (NAlpha));
+        }
     }
 
     double getValue(double[,] heatMap, int r, int angle)
@@ -41,7 +43,7 @@ public class Simulation
             angle = NAlpha - angle;
         }
 
-        angle = angle % NAlpha;
+        angle = angle % (NAlpha - 1);
 
         return heatMap[r, angle];
     }
@@ -59,7 +61,7 @@ public class Simulation
         {
             derivative = (getValue(m, r - 1, angle) - 2 * getValue(m, r, angle) + getValue(m, r + 1, angle))/(dr * dr) +
                          (1.0 / r_i) * (getValue(m, r + 1, angle) - getValue(m, r - 1, angle)) / (2.0 * dr) + 
-                         (1.0/(r_i * r_i) * (getValue(m, r, angle - 1) - 2.0 * getValue(m, r, angle) + getValue(m, r, angle + 1)) / (dalpha * dalpha));
+                         1.0/(r_i * r_i) * (getValue(m, r, angle + 1) - 2.0 * getValue(m, r, angle) + getValue(m, r, angle - 1)) / (dalpha * dalpha);
         }
 
         result += alpha * dt * derivative;
@@ -84,7 +86,9 @@ public class Simulation
     {
         dt = endT / (Nt - 1);
         dr = R / (Nr - 1);
-        dalpha = 2 * Math.PI / (NAlpha);
+        dalpha = 2.0 * Math.PI / (NAlpha);
+
+        d = alpha * dt / (dr * dr);
 
         //heatMap = [N_R, N_T]
         //      ...
@@ -95,7 +99,6 @@ public class Simulation
 
         fillBoundaryCondition(heatMap[0]);
 
-        d = alpha * dt / (dr * dr);
 
         for (int i = 0; i < Nt; i++)
         {
@@ -112,7 +115,7 @@ public class Simulation
 
             for (int angle = 0; angle < NAlpha; angle++)
             {
-                current[0, angle] = heatMap[i][0, 0];
+                current[0, angle] = heatMap[i][0, angle];
 
                 current[Nr - 1, angle] = heatMap[i][Nr - 1, angle];
             }
