@@ -29,7 +29,7 @@ public class TestCreate : MonoBehaviour
     double max = double.MinValue;
 
     private FilterMode mode = FilterMode.Point;
-
+    private int currentStep = 0;
     void Start()
     {
         angleStepsSlider.minValue = radialStepsSlider.minValue = 3;
@@ -41,7 +41,8 @@ public class TestCreate : MonoBehaviour
         sim.Nr = 10;
         sim.NAlpha = 10;
 
-        res = sim.solve();
+        sim.solve();
+        res = sim.heatMap;
 
         radialSegmentsText.text = sim.Nr.ToString();
         angularSegmentsText.text = sim.NAlpha.ToString();
@@ -60,7 +61,7 @@ public class TestCreate : MonoBehaviour
 
     private void updateCurrentTime()
     {
-        timeText.text = (currentTimeSlider.value * sim.dt).ToString("0.00000");
+        timeText.text = (currentStep * sim.dt).ToString("0.00000");
     }
 
     private void RadialStepsChanged()
@@ -81,19 +82,18 @@ public class TestCreate : MonoBehaviour
 
     private void updateEverything()
     {
-        res = sim.solve();
-
+        //sim.solve();
+        sim.init();
+        res = sim.heatMap;
         updateMinMax();
         createTexture();
 
         CircleMeshGenerator.generateCircleOnGO(circleTemplate, 10, sim.Nr - 1, sim.NAlpha);
-        updateTexture(res[(int) currentTimeSlider.value], GradientManager.Gradient);
-
-        updateCurrentTime();
-
+        setValue(currentStep);
+        
         double stab = (sim.alpha * sim.dt / (sim.dr * sim.dr) + sim.alpha * sim.dt / (sim.dalpha * sim.dalpha));
         bool stable = stab < 0.5;
-        Debug.Log(stab +" " + stable);
+        //Debug.Log(stab +" " + stable);
     }
 
     private void createTexture()
@@ -106,6 +106,13 @@ public class TestCreate : MonoBehaviour
         {
             texture = new Texture2D(sim.Nr, sim.NAlpha);
         }
+    }
+
+    IEnumerator runSimulation()
+    {
+
+
+        yield break;
     }
 
     private void updateMinMax()
@@ -132,14 +139,13 @@ public class TestCreate : MonoBehaviour
 
     private void updateTexture(double[,] current, Gradient gradient)
     {
-        writeToTexture(current, gradient);
+        writeToTexture(current, texture, min, max, gradient);
 
         texture.filterMode = mode;
         texture.wrapModeU = TextureWrapMode.Mirror;
         texture.wrapModeV = TextureWrapMode.Repeat;
 
-        texture.Apply();
-
+        texture.Apply(true);
         Renderer renderer = quad.GetComponent<Renderer>();
         renderer.material.mainTexture = texture;
 
@@ -147,7 +153,7 @@ public class TestCreate : MonoBehaviour
         rendererObj.material.mainTexture = texture;
     }
 
-    private void writeToTexture(double[,] current, Gradient gradient)
+    private static void writeToTexture(double[,] current, Texture2D texture, double min, double max, Gradient gradient)
     {
         for (int x = 0; x < texture.width; x++)
         {
@@ -165,16 +171,45 @@ public class TestCreate : MonoBehaviour
 
     public void ValueChangeCheck()
     {
-        int value = (int) currentTimeSlider.value;
+        var value = (int) currentTimeSlider.value;
 
         //Debug.Log(value);
-        updateTexture(res[value], GradientManager.Gradient);
-
-        updateCurrentTime();
+        setValue(value);
     }
 
-    // Update is called once per frame
+    private void setValue(int value)
+    {
+        if (value < res.Count)
+        {
+            currentStep = value;
+            updateTexture(res[value], GradientManager.Gradient);
+
+            updateCurrentTime();
+        }
+        else
+        {
+            Debug.LogWarning("Unable " + value.ToString());
+        }
+    }
+
+
     void Update()
     {
+        for (int i = 0; i < 10; i++)
+        {
+            if (sim.steps < sim.Nt)
+            {
+                sim.simStep();
+            }
+        }
+        
+        if (sim.steps < currentStep)
+        {
+            setValue(sim.steps);
+        }
+        else
+        {
+            setValue(currentStep);
+        }
     }
 }

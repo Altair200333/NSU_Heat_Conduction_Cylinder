@@ -20,6 +20,8 @@ public class Simulation
 
     public double CentralTemperature { get; set; } = 0;
 
+    public List<double[,]> heatMap;
+    public int steps = 0;
     void fillBoundaryCondition(double[,] heatMap)
     {
         for (int i = 0; i < Nr; i++)
@@ -82,8 +84,45 @@ public class Simulation
         return result;
     }
 
-    public List<double[,]> solve()
+    public void simStep()
     {
+        var last = heatMap[heatMap.Count - 1];
+        var current = new double[Nr, NAlpha];
+
+        //boundary is fixed so Nr - 1
+        for (int r = 1; r < Nr - 1; r++)
+        {
+            for (int angle = 0; angle < NAlpha; angle++)
+            {
+                current[r, angle] = nextPoint(r, angle, last);
+            }
+        }
+
+        for (int angle = 0; angle < NAlpha; angle++)
+        {
+            current[0, angle] = last[0, angle];
+
+            current[Nr - 1, angle] = last[Nr - 1, angle];
+        }
+
+        heatMap.Add(current);
+        ++steps;
+    }
+    public void solve()
+    {
+        init();
+
+
+        for (int i = 0; i < Nt; i++)
+        {
+            simStep();
+        }
+    }
+
+    public void init()
+    {
+        steps = 0;
+        
         dt = endT / (Nt - 1);
         dr = R / (Nr - 1);
         dalpha = 360.0 / (NAlpha);
@@ -94,35 +133,9 @@ public class Simulation
         //      ...
         //    End Time
 
-        List<double[,]> heatMap = new List<double[,]>();
+        heatMap = new List<double[,]>();
         heatMap.Add(new double[Nr, NAlpha]);
 
         fillBoundaryCondition(heatMap[0]);
-
-
-        for (int i = 0; i < Nt; i++)
-        {
-            var current = new double[Nr, NAlpha];
-
-            //boundary is fixed so Nr - 1
-            for (int r = 1; r < Nr - 1; r++)
-            {
-                for (int angle = 0; angle < NAlpha; angle++)
-                {
-                    current[r, angle] = nextPoint(r, angle, heatMap[i]);
-                }
-            }
-
-            for (int angle = 0; angle < NAlpha; angle++)
-            {
-                current[0, angle] = heatMap[i][0, angle];
-
-                current[Nr - 1, angle] = heatMap[i][Nr - 1, angle];
-            }
-
-            heatMap.Add(current);
-        }
-
-        return heatMap;
     }
 }
