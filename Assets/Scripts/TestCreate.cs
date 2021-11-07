@@ -192,18 +192,26 @@ public class TestCreate : MonoBehaviour
         }
     }
 
+    private double maxDelayMs = 10;
 
     void Update()
     {
+        var startTime = Time.realtimeSinceStartupAsDouble;
         for (int i = 0; i < 10; i++)
         {
             if (sim.steps < sim.Nt)
             {
                 sim.simStep();
+                var timeNow = Time.realtimeSinceStartupAsDouble;
+                if(timeNow - startTime > maxDelayMs * 1000.0)
+                    break;
+            }
+            else
+            {
+                break;
             }
         }
-        
-        if (sim.steps < currentStep)
+        if (sim.steps < (int)currentTimeSlider.value)
         {
             setValue(sim.steps);
         }
