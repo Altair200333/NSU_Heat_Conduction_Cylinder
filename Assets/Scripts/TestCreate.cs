@@ -16,10 +16,14 @@ public class TestCreate : MonoBehaviour
     public Slider currentTimeSlider;
     public Slider angleStepsSlider;
     public Slider radialStepsSlider;
+    public Slider timeStepsSlider;
+
+    public Slider progressSlider;
 
     public TextMeshPro radialSegmentsText;
     public TextMeshPro angularSegmentsText;
     public TextMeshPro timeText;
+    public TextMeshPro timeStepsText;
 
     private List<double[,]> res;
     Simulation sim = new Simulation();
@@ -32,8 +36,9 @@ public class TestCreate : MonoBehaviour
     private int currentStep = 0;
     void Start()
     {
+        progressSlider.maxValue = 1.0f;
         angleStepsSlider.minValue = radialStepsSlider.minValue = 3;
-        angleStepsSlider.maxValue = radialStepsSlider.maxValue = 100;
+        angleStepsSlider.maxValue = radialStepsSlider.maxValue = 200;
 
         sim.R = 1;
         sim.endT = 1;
@@ -46,17 +51,32 @@ public class TestCreate : MonoBehaviour
 
         radialSegmentsText.text = sim.Nr.ToString();
         angularSegmentsText.text = sim.NAlpha.ToString();
+        timeStepsText.text = sim.Nt.ToString();
 
         radialStepsSlider.value = sim.Nr;
         angleStepsSlider.value = sim.NAlpha;
         currentTimeSlider.maxValue = sim.Nt;
 
+        timeStepsSlider.value = sim.Nt;
+        timeStepsSlider.maxValue = 100000;
+
         currentTimeSlider.onValueChanged.AddListener(delegate { ValueChangeCheck(); });
         angleStepsSlider.onValueChanged.AddListener(delegate { AngleStepsChanged(); });
         radialStepsSlider.onValueChanged.AddListener(delegate { RadialStepsChanged(); });
+        timeStepsSlider.onValueChanged.AddListener(delegate { TimeStepsChanged(); });
 
         updateEverything();
 
+    }
+
+    private void TimeStepsChanged()
+    {
+        sim.Nt = (int)timeStepsSlider.value;
+        timeStepsText.text = sim.Nt.ToString();
+
+        currentTimeSlider.maxValue = sim.Nt;
+
+        updateEverything();
     }
 
     private void updateCurrentTime()
@@ -197,7 +217,7 @@ public class TestCreate : MonoBehaviour
     void Update()
     {
         var startTime = Time.realtimeSinceStartupAsDouble;
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 15; i++)
         {
             if (sim.steps < sim.Nt)
             {
@@ -219,5 +239,7 @@ public class TestCreate : MonoBehaviour
         {
             setValue(currentStep);
         }
+
+        progressSlider.value = (float) sim.steps / sim.Nt;
     }
 }

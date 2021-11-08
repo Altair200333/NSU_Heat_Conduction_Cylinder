@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 
 class PointsCircle
@@ -62,9 +63,12 @@ public class CircleMeshGenerator
                 addQuad(sides, vertices, triangles, ref id, wireframe);
             }
         }
+        meshFilter.mesh.indexFormat = IndexFormat.UInt32;
 
         setMaterial(go, meshFilter, vertices, triangles, wireframe);
         meshFilter.mesh.SetUVs(0, uvs);
+
+        
     }
 
     private static void addTriangles(List<int> triangles, ref int id, bool lines, bool revers = false)
