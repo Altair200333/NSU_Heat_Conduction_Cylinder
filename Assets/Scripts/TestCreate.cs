@@ -11,6 +11,7 @@ public class TestCreate : MonoBehaviour
 {
     public GameObject quad;
     public GameObject circleTemplate;
+    public GameObject heightMapTemplate;
     public Transform parentContainer;
 
     public Slider currentTimeSlider;
@@ -109,6 +110,7 @@ public class TestCreate : MonoBehaviour
         createTexture();
 
         CircleMeshGenerator.generateCircleOnGO(circleTemplate, 10, sim.Nr - 1, sim.NAlpha);
+
         setValue(currentStep);
         
         double stab = (sim.alpha * sim.dt / (sim.dr * sim.dr) + sim.alpha * sim.dt / (sim.dalpha * sim.dalpha));
@@ -171,6 +173,9 @@ public class TestCreate : MonoBehaviour
 
         Renderer rendererObj = circleTemplate.GetComponent<Renderer>();
         rendererObj.material.mainTexture = texture;
+
+        Renderer heightRenderer = heightMapTemplate.GetComponent<Renderer>();
+        heightRenderer.material.mainTexture = texture;
     }
 
     private static void writeToTexture(double[,] current, Texture2D texture, double min, double max, Gradient gradient)
@@ -202,9 +207,13 @@ public class TestCreate : MonoBehaviour
         if (value < res.Count)
         {
             currentStep = value;
+            CircleMeshGenerator.generateCircleHeightOnGO(heightMapTemplate, res[currentStep], min, max, 10, sim.Nr - 1, sim.NAlpha);
+
             updateTexture(res[value], GradientManager.Gradient);
 
             updateCurrentTime();
+
+
         }
         else
         {

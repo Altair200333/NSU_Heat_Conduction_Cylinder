@@ -18,7 +18,7 @@ public class Simulation
 
     public int NAlpha;
 
-    public double CentralTemperature { get; set; } = 0;
+    public double CentralTemperature { get; set; } = 1;
 
     public List<double[,]> heatMap;
     public int steps = 0;
