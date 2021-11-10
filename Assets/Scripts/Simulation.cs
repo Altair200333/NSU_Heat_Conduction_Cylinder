@@ -69,21 +69,12 @@ public class Simulation
         result += alpha * dt * derivative;
 
         return result;
-        if (r > 0)
-        {
-            derivative =
-                dr / (2 * r_i) * (getValue(m, r + 1, angle) - getValue(m, r - 1, angle)) +
-                1.0 / (r_i * r_i) * (dr * dr) / (dalpha * dalpha) * (getValue(m, r, angle - 1) -
-                    2.0 * getValue(m, r, angle) + getValue(m, r, angle + 1));
-        }
-
-        result += d * (
-            (getValue(m, r - 1, angle) - 2.0 * getValue(m, r, angle) + getValue(m, r + 1, angle))
-            + derivative);
-
-        return result;
     }
 
+    void fillBoundary()
+    {
+
+    }
     public void simStep()
     {
         var last = heatMap[heatMap.Count - 1];
@@ -100,7 +91,7 @@ public class Simulation
 
         for (int angle = 0; angle < NAlpha; angle++)
         {
-            current[0, angle] = last[0, angle];
+            current[0, angle] = CentralTemperature;
 
             current[Nr - 1, angle] = last[Nr - 1, angle];
         }
